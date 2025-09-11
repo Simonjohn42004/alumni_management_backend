@@ -141,30 +141,35 @@ model Roles {
   name        String  @unique
   description String?
 
-  permissions Permissions[]
+  Permissions Permissions[]
 
   @@map("roles")
 }
 
+// Enum with the given feature names
+enum FeatureName {
+  CHATS
+  PROFILES
+  POSTS
+  FUNDRAISING
+  EVENTS
+  ANNOUNCEMENTS
+}
+
+// Permissions model with foreign key relation to Roles and enum for featureName
 model Permissions {
-  id          Int     @id @default(autoincrement())
-  roleId      Int
-  featureName String
-  canCreate   Boolean @default(false)
-  canRead     Boolean @default(true) // All roles can read
-  canUpdate   Boolean @default(false)
-  canDelete   Boolean @default(false)
+  id           Int         @id @default(autoincrement())
+  roleId       Int
+  featureName  FeatureName
+  canCreate    Boolean     @default(false)
+  canRead      Boolean     @default(false)
+  canUpdateOwn Boolean     @default(false)
+  canUpdateAny Boolean     @default(false)
+  canDeleteOwn Boolean     @default(false)
+  canDeleteAny Boolean     @default(false)
 
   role Roles @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, featureName])
   @@map("permissions")
-}
-
-model Features {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
-  description String?
-
-  @@map("features")
 }
