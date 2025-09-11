@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaDatabaseService } from 'src/prisma-database/prisma-database.service';
 import { Prisma, Users } from 'generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';

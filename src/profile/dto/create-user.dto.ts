@@ -56,7 +56,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   @MaxLength(15)
-  phoneNumber?: string;
+  phoneNumber: string;
 
   @IsOptional()
   @IsString()

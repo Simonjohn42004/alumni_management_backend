@@ -16,11 +16,11 @@ datasource db {
 
 model Users {
   id              String     @id
-  roleId          Int // 1 - Current Student, 2 - Alumni, 3 - Faculty
+  roleId          Int
   fullName        String
   email           String     @unique
   passwordHash    String     @unique
-  phoneNumber     String?    @unique
+  phoneNumber     String     @unique
   profilePicture  String?
   graduationYear  Int
   currentPosition String?
@@ -28,6 +28,13 @@ model Users {
   collegeId       Int
   department      Department
   skillSets       String[]
+
+  posts          Posts[]
+  postLikes      PostLikes[]
+  postComments   PostComments[]
+  postTagsTagged PostTags[]     @relation("TaggedUser")
+  postTagsBy     PostTags[]     @relation("TaggedByUser")
+  postSaves      PostSaves[]
 }
 
 enum Department {
@@ -59,4 +66,72 @@ model Educations {
   description  String?
 
   @@id([id, schoolName, degree])
+}
+
+model Posts {
+  id         Int      @id @default(autoincrement())
+  authorId   String
+  title      String
+  content    String?
+  createdAt  DateTime @default(now())
+  collegeId  Int
+  media_urls String[]
+
+  author       Users          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  postTags     PostTags[]
+  postLikes    PostLikes[]
+  postComments PostComments[]
+  postSaves    PostSaves[]
+}
+
+model PostTags {
+  id           Int      @id @default(autoincrement())
+  postId       Int // Required: tag belongs to this post
+  commentId    Int? // Optional: tag belongs to a comment if not null
+  taggedUserId String // The user being tagged
+  taggedBy     String // The user who tagged
+  taggedAt     DateTime @default(now())
+
+  post    Posts         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment PostComments? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  taggedUser   Users @relation("TaggedUser", fields: [taggedUserId], references: [id], onDelete: Cascade)
+  taggedByUser Users @relation("TaggedByUser", fields: [taggedBy], references: [id], onDelete: Cascade)
+
+  @@unique([postId, taggedUserId, taggedBy]) // prevent duplicate tag on post by same user
+}
+
+model PostComments {
+  id          Int      @id @default(autoincrement()) // Add this unique id field
+  postId      Int
+  commenterId String
+  comment     String
+  createdAt   DateTime @default(now())
+
+  post      Posts @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commenter Users @relation(fields: [commenterId], references: [id], onDelete: Cascade)
+
+  PostTags PostTags[]
+}
+
+model PostLikes {
+  postId  Int
+  userId  String
+  likedAt DateTime @default(now())
+
+  post Posts @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+}
+
+model PostSaves {
+  postId  Int
+  savedBy String
+  savedAt DateTime @default(now())
+
+  post Posts @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user Users @relation(fields: [savedBy], references: [id], onDelete: Cascade)
+
+  @@id([postId, savedBy])
 }
