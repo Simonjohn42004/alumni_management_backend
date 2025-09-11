@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id              String     @id
+  roleId          Int // 1 - Current Student, 2 - Alumni, 3 - Faculty
+  fullName        String
+  email           String     @unique
+  passwordHash    String     @unique
+  phoneNumber     String?    @unique
+  profilePicture  String?
+  graduationYear  Int
+  currentPosition String?
+  createdAt       DateTime   @default(now())
+  collegeId       Int
+  department      Department
+  skillSets       String[]
+}
+
+enum Department {
+  COMPUTER_SCIENCE_ENGINEERING
+  COMPUTER_SCIENCE_BUSINESS_SYSTEMS
+  ARTIFICIAL_INTELLIGENCE_DATA_SCIENCE
+  ARTIFICIAL_INTELLIGENCE_MACHINE_LEARNING
+  MECHANICAL_AUTOMATION_ENGINEERING
+  INTERNET_OF_THINGS
+  CYBERSECURITY
+  COMPUTER_COMMUNICATION_ENGINEERING
+  ELECTRICAL_INSTRUMENTATION_ENGINEERING
+  INSTRUMENTATION_CONTROL_ENGINEERING
+  INFORMATION_TECHNOLOGY
+  MECHANICAL_ENGINEERING
+  ELECTRICAL_ELECTRONICS_ENGINEERING
+  CIVIL_ENGINEERING
+  ELECTRONICS_COMMUNICATION_ENGINEERING
+}
+
+model Educations {
+  id           String
+  schoolName   String
+  degree       String
+  fieldOfStudy String?
+  startDate    DateTime
+  endDate      DateTime
+  cgpa         Decimal  @db.Decimal(3, 2)
+  description  String?
+
+  @@id([id, schoolName, degree])
+}
