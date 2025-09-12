@@ -148,12 +148,12 @@ model Roles {
 
 // Enum with the given feature names
 enum FeatureName {
-  CHATS
-  PROFILES
-  POSTS
-  FUNDRAISING
-  EVENTS
-  ANNOUNCEMENTS
+  chats
+  profiles
+  posts
+  fundraising
+  events
+  announcements
 }
 
 // Permissions model with foreign key relation to Roles and enum for featureName
