@@ -35,6 +35,8 @@ model Users {
   postTagsTagged PostTags[]     @relation("TaggedUser")
   postTagsBy     PostTags[]     @relation("TaggedByUser")
   postSaves      PostSaves[]
+
+  educations Educations[]
 }
 
 enum Department {
@@ -56,7 +58,8 @@ enum Department {
 }
 
 model Educations {
-  id           String
+  id           Int      @id @default(autoincrement())
+  userId       String
   schoolName   String
   degree       String
   fieldOfStudy String?
@@ -65,7 +68,9 @@ model Educations {
   cgpa         Decimal  @db.Decimal(3, 2)
   description  String?
 
-  @@id([id, schoolName, degree])
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, schoolName, degree])
 }
 
 model Posts {

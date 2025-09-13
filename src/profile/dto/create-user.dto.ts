@@ -11,7 +11,9 @@ import {
   Min,
   Max,
   IsNotEmpty,
+  ValidateNested,
 } from 'class-validator';
+import { UpdateEducationDto } from 'src/profile/educations/dto/update-education.dto';
 
 // Enum from your Prisma schema
 export enum Department {

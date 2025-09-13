@@ -1,23 +1,24 @@
-import { Type } from 'class-transformer';
 import {
   IsString,
   IsOptional,
   IsDate,
-  MaxLength,
   IsDecimal,
-  Matches,
-  ValidateIf,
+  MinLength,
+  MaxLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class EducationDto {
+export class CreateEducationDto {
   @IsString()
-  id: string;
+  userId: string;
 
   @IsString()
+  @MinLength(1)
   @MaxLength(255)
   schoolName: string;
 
   @IsString()
+  @MinLength(1)
   @MaxLength(255)
   degree: string;
 
@@ -26,22 +27,19 @@ export class EducationDto {
   @MaxLength(255)
   fieldOfStudy?: string;
 
-  @IsDate()
   @Type(() => Date)
+  @IsDate()
   startDate: Date;
 
-  @IsDate()
   @Type(() => Date)
+  @IsDate()
   endDate: Date;
 
-  // Validate Decimal as string with precision 3 and scale 2 pattern, e.g. 9.99
-  @Matches(/^\d{1}\.\d{2}$/, {
-    message:
-      'cgpa must have 1 digit before and 2 digits after decimal (e.g. 9.99)',
-  })
+  @IsString() // Prisma Decimal is represented as string in JS/TS
   cgpa: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   description?: string;
 }

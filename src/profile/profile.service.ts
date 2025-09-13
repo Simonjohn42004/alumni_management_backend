@@ -34,10 +34,23 @@ export class ProfileService {
     return await this.prisma.users.findMany();
   }
 
-  async findOne(id: string): Promise<Users | null> {
-    return await this.prisma.users.findUnique({
+  async findOne(id: string) {
+    const user = await this.prisma.users.findUnique({
       where: { id },
+      include: {
+        educations: true,
+        posts: true,
+        postComments: true,
+        postTagsBy: true,
+        postTagsTagged: true,
+      },
     });
+
+    if (!user) {
+      return null;
+    }
+
+    return user;
   }
 
   async update(id: string, updateProfileDto: UpdateUserDto): Promise<Users> {
