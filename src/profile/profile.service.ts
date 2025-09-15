@@ -3,6 +3,7 @@ import { PrismaDatabaseService } from 'src/prisma-database/prisma-database.servi
 import { Prisma, Users } from 'generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateEducationDto } from './educations/dto/update-education.dto';
 
 @Injectable()
 export class ProfileService {

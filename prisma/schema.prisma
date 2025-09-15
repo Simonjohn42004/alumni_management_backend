@@ -37,6 +37,12 @@ model Users {
   postSaves      PostSaves[]
 
   educations Educations[]
+
+  CampaignUpdate CampaignUpdate[]
+
+  Donation Donation[]
+
+  Campaign Campaign[]
 }
 
 enum Department {
@@ -177,4 +183,123 @@ model Permissions {
 
   @@unique([roleId, featureName])
   @@map("permissions")
+}
+
+// Fundraising Campaigns created by users
+model Campaign {
+  id            Int            @id @default(autoincrement())
+  title         String
+  description   String
+  goalAmount    Decimal        @db.Decimal(10, 2)
+  currentAmount Decimal        @default(0) @db.Decimal(10, 2)
+  startDate     DateTime
+  endDate       DateTime
+  status        CampaignStatus @default(ACTIVE)
+  creatorId     String
+  createdAt     DateTime       @default(now())
+
+  creator Users @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  donations  Donation[]
+  rewards    Reward[]
+  updates    CampaignUpdate[]
+  categories CampaignCategory[]
+
+  @@index([creatorId])
+}
+
+// Status enum for campaigns
+enum CampaignStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// Donations made by users to campaigns
+model Donation {
+  id                Int               @id @default(autoincrement())
+  campaignId        Int
+  donorId           String
+  amount            Decimal           @db.Decimal(10, 2)
+  donationDate      DateTime          @default(now())
+  paymentMethod     String
+  transactionStatus TransactionStatus @default(PENDING)
+
+  campaign       Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  donor          Users           @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  paymentDetails PaymentDetails?
+
+  @@index([campaignId])
+  @@index([donorId])
+}
+
+// Payment transaction details for donations
+model PaymentDetails {
+  id               Int           @id @default(autoincrement())
+  donationId       Int           @unique
+  paymentProvider  String
+  paymentStatus    PaymentStatus
+  transactionDate  DateTime      @default(now())
+  paymentReference String?
+
+  donation Donation @relation(fields: [donationId], references: [id], onDelete: Cascade)
+}
+
+// Enum for transaction status
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// Enum for payment status
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+// Rewards or perks offered for donations
+model Reward {
+  id            Int     @id @default(autoincrement())
+  campaignId    Int
+  description   String
+  minimumAmount Decimal @db.Decimal(10, 2)
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+// Updates made by campaign creators
+model CampaignUpdate {
+  id         Int      @id @default(autoincrement())
+  campaignId Int
+  userId     String
+  updateText String
+  createdAt  DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// *****  Category to be implemented in future *****
+// Categories to classify campaigns
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  campaigns CampaignCategory[]
+}
+
+// *****  CampaignCategory to be implemented in future *****
+// Join table for many-to-many relation between Campaign and Category
+model CampaignCategory {
+  id         Int @id @default(autoincrement())
+  campaignId Int
+  categoryId Int
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, categoryId])
 }

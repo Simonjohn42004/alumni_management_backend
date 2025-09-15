@@ -12,8 +12,10 @@ import {
   Max,
   IsNotEmpty,
   ValidateNested,
+  isArray,
+  IsObject,
 } from 'class-validator';
-import { UpdateEducationDto } from 'src/profile/educations/dto/update-education.dto';
+import { Educations } from 'generated/prisma';
 
 // Enum from your Prisma schema
 export enum Department {
