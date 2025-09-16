@@ -25,13 +25,24 @@ export class PostLikesService {
   }
 
   async countLikes(postId: number): Promise<number> {
-  return await this.prisma.postLikes.count({ where: { postId } });
-}
+    return await this.prisma.postLikes.count({ where: { postId } });
+  }
 
+  async findPostIdsLikedByUser(userId: string): Promise<number[]> {
+    const likes = await this.prisma.postLikes.findMany({
+      where: { userId },
+      select: { postId: true }, // select only postId to optimize
+    });
 
-  // Get all post likes
-  async findAll() {
-    return this.prisma.postLikes.findMany();
+    return likes.map((like) => like.postId);
+  }
+
+  async findAll(postId?: number) {
+    const whereClause = postId !== undefined ? { postId } : {};
+
+    return this.prisma.postLikes.findMany({
+      where: whereClause,
+    });
   }
 
   // Get a post like by composite key simulated by returning the first match by postId or userId

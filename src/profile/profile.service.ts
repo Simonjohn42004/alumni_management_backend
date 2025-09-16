@@ -40,10 +40,9 @@ export class ProfileService {
       where: { id },
       include: {
         educations: true,
-        posts: true,
-        postComments: true,
-        postTagsBy: true,
-        postTagsTagged: true,
+        posts: {
+          include: { author: true },
+        },
       },
     });
 

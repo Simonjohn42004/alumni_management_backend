@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Query, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Query,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { PostLikesService } from './post-likes.service';
 import { CreatePostLikeDto } from './dto/create-post-likes.dto';
 
@@ -12,8 +21,13 @@ export class PostLikesController {
   }
 
   @Get()
-  findAll() {
-    return this.postLikesService.findAll();
+  findAll(@Query('postId') postId?: string) {
+    return this.postLikesService.findAll(postId ? +postId : undefined);
+  }
+
+  @Get('liked-posts/:userId')
+  findLikedPostIds(@Param('userId') userId: string) {
+    return this.postLikesService.findPostIdsLikedByUser(userId);
   }
 
   /**
