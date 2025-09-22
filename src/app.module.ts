@@ -15,10 +15,60 @@ import { DonationsModule } from './campaign/donations/donations.module';
 import { PaymentDetailsModule } from './campaign/payment-details/payment-details.module';
 import { RewardsModule } from './campaign/rewards/rewards.module';
 import { CampaignUpdatesModule } from './campaign/campaign-updates/campaign-updates.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from './auth/guards/roles.guard';
+import { CompositeAuthGuard } from './auth/guards/composite.guard';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [ProfileModule, PrismaDatabaseModule, RolesModule, EducationsModule, PostsModule, PostCommentsModule, PostLikesModule, PostSavesModule, PostTagsModule, CampaignModule, DonationsModule, PaymentDetailsModule, RewardsModule, CampaignUpdatesModule],
+  imports: [
+    ProfileModule,
+    PrismaDatabaseModule,
+    RolesModule,
+    EducationsModule,
+    PostsModule,
+    PostCommentsModule,
+    PostLikesModule,
+    PostSavesModule,
+    PostTagsModule,
+    CampaignModule,
+    DonationsModule,
+    PaymentDetailsModule,
+    RewardsModule,
+    CampaignUpdatesModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule, AuthModule],
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        console.log('JWT_SECRET : ', secret ? secret : 'Not Set');
+        if (!secret) {
+          throw new Error(
+            'JWT_SECRET must be defined in environment variables',
+          );
+        }
+        return {
+          secret: secret,
+          signOptions: {
+            expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '7d',
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    JwtAuthGuard,
+    PermissionsGuard,
+    {
+      provide: APP_GUARD,
+      useClass: CompositeAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

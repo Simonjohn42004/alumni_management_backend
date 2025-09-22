@@ -3,19 +3,25 @@ import { PrismaDatabaseService } from 'src/prisma-database/prisma-database.servi
 import { Prisma, Users } from 'generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateEducationDto } from './educations/dto/update-education.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaDatabaseService) {}
+  constructor(
+    private readonly prisma: PrismaDatabaseService,
+    private readonly authService: AuthService,
+  ) {}
 
   async create(createProfileDto: CreateUserDto): Promise<Users> {
+    const hashedPassword = await this.authService.hashPassword(
+      createProfileDto.passwordHash,
+    );
+
     const prismaInput: Prisma.UsersCreateInput = {
       id: createProfileDto.id,
-      roleId: createProfileDto.roleId,
+      role: { connect: { id: createProfileDto.roleId } },
       fullName: createProfileDto.fullName,
       email: createProfileDto.email,
-      passwordHash: createProfileDto.passwordHash,
       phoneNumber: createProfileDto.phoneNumber,
       profilePicture: createProfileDto.profilePicture,
       graduationYear: createProfileDto.graduationYear,
@@ -24,6 +30,7 @@ export class ProfileService {
       collegeId: createProfileDto.collegeId,
       department: createProfileDto.department,
       skillSets: createProfileDto.skillSets,
+      passwordHash: hashedPassword,
     };
 
     return await this.prisma.users.create({
@@ -54,8 +61,14 @@ export class ProfileService {
   }
 
   async update(id: string, updateProfileDto: UpdateUserDto): Promise<Users> {
+    const data = { ...updateProfileDto };
+    if (updateProfileDto.passwordHash) {
+      data.passwordHash = await this.authService.hashPassword(
+        updateProfileDto.passwordHash,
+      );
+    }
     const prismaUpdateInput: Prisma.UsersUpdateInput = {
-      ...updateProfileDto,
+      ...data,
     };
 
     return await this.prisma.users.update({
