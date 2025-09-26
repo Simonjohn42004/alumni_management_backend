@@ -25,4 +25,21 @@ export class CreatePaymentDetailDto {
   @IsOptional()
   @IsString()
   paymentReference?: string;
+
+  // New Razorpay fields
+  @IsOptional()
+  @IsString()
+  razorpayOrderId?: string;
+
+  @IsOptional()
+  @IsString()
+  razorpayPaymentId?: string;
+
+  @IsOptional()
+  @IsString()
+  razorpaySignature?: string;
+
+  @IsOptional()
+  @IsString()
+  errorMessage?: string;
 }

@@ -39,17 +39,24 @@ export class PermissionsGuard implements CanActivate {
     );
 
     if (!requiredPermissions) {
-      this.logger.debug(`${this.prefix} No required permissions set, allowing access`);
+      this.logger.debug(
+        `${this.prefix} No required permissions set, allowing access`,
+      );
       return true;
     }
 
     const { user } = context.switchToHttp().getRequest();
+    this.logger.debug(`${this.prefix} User Details : ${JSON.stringify(user)}`);
     if (!user) {
-      this.logger.warn(`${this.prefix} No user found on request, denying access`);
+      this.logger.warn(
+        `${this.prefix} No user found on request, denying access`,
+      );
       return false;
     }
 
-    this.logger.debug(`${this.prefix} User permissions: ${JSON.stringify(user.permissions)}`);
+    this.logger.debug(
+      `${this.prefix} User permissions: ${JSON.stringify(user.fullUser.role.Permissions)}`,
+    );
 
     const hasPermission = requiredPermissions.every((permission) =>
       this.checkPermission(user, permission, context),
@@ -62,7 +69,9 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('Insufficient permissions');
     }
 
-    this.logger.debug(`${this.prefix} User ${user.id} has all required permissions`);
+    this.logger.debug(
+      `${this.prefix} User ${user.id} has all required permissions`,
+    );
     return true;
   }
 
@@ -71,7 +80,7 @@ export class PermissionsGuard implements CanActivate {
     required: RequiredPermission,
     context: ExecutionContext,
   ): boolean {
-    const userPermissions = user.permissions;
+    const userPermissions = user.fullUser.role.Permissions;
     const featurePermission = userPermissions.find(
       (p: any) => p.featureName === required.feature,
     );
@@ -92,10 +101,14 @@ export class PermissionsGuard implements CanActivate {
 
     switch (required.action) {
       case 'create':
-        this.logger.debug(`${this.prefix} Can create: ${featurePermission.canCreate}`);
+        this.logger.debug(
+          `${this.prefix} Can create: ${featurePermission.canCreate}`,
+        );
         return featurePermission.canCreate;
       case 'read':
-        this.logger.debug(`${this.prefix} Can read: ${featurePermission.canRead}`);
+        this.logger.debug(
+          `${this.prefix} Can read: ${featurePermission.canRead}`,
+        );
         return featurePermission.canRead;
       case 'updateOwn':
         if (featurePermission.canUpdateAny) {
@@ -110,7 +123,9 @@ export class PermissionsGuard implements CanActivate {
         this.logger.debug(`${this.prefix} Update own not allowed`);
         return false;
       case 'updateAny':
-        this.logger.debug(`${this.prefix} Can update any: ${featurePermission.canUpdateAny}`);
+        this.logger.debug(
+          `${this.prefix} Can update any: ${featurePermission.canUpdateAny}`,
+        );
         return featurePermission.canUpdateAny;
       case 'deleteOwn':
         if (featurePermission.canDeleteAny) {
@@ -125,10 +140,14 @@ export class PermissionsGuard implements CanActivate {
         this.logger.debug(`${this.prefix} Delete own not allowed`);
         return false;
       case 'deleteAny':
-        this.logger.debug(`${this.prefix} Can delete any: ${featurePermission.canDeleteAny}`);
+        this.logger.debug(
+          `${this.prefix} Can delete any: ${featurePermission.canDeleteAny}`,
+        );
         return featurePermission.canDeleteAny;
       default:
-        this.logger.warn(`${this.prefix} Unknown action "${required.action}" requested`);
+        this.logger.warn(
+          `${this.prefix} Unknown action "${required.action}" requested`,
+        );
         return false;
     }
   }

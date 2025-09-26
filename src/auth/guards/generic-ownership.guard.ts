@@ -1,17 +1,14 @@
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
-  NotFoundException,
   ForbiddenException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { FeatureName } from 'generated/prisma/client';
-import {
-  PERMISSIONS_KEY,
-  RequiredPermission,
-} from 'src/auth/guards/roles.guard';
 import { PrismaDatabaseService } from 'src/prisma-database/prisma-database.service';
+import { PERMISSIONS_KEY, RequiredPermission } from './roles.guard';
 
 @Injectable()
 export class GenericOwnershipGuard implements CanActivate {
@@ -35,7 +32,7 @@ export class GenericOwnershipGuard implements CanActivate {
       return false;
     }
 
-    // We assume single permission for simplicity; extend as needed
+    // Assume single permission for simplicity; extend as needed
     const permission = requiredPermissions[0];
     if (!permission) return false;
 
@@ -49,7 +46,6 @@ export class GenericOwnershipGuard implements CanActivate {
 
     const resourceIdParam = request.params.id;
     if (!resourceIdParam) {
-      // No resource id in params
       throw new ForbiddenException('Resource ID parameter missing');
     }
     const resourceId = isNaN(resourceIdParam)
@@ -77,7 +73,80 @@ export class GenericOwnershipGuard implements CanActivate {
         resourceOwnerId = comment.commenterId;
         break;
 
-      // Add other post-related features here, e.g. likes, shares, etc.
+      // New feature cases with ownership logic
+      case FeatureName.fundraising:
+        const campaign = await this.prisma.campaign.findUnique({
+          where: { id: resourceId as number },
+          select: { creatorId: true },
+        });
+        if (!campaign) throw new NotFoundException('Campaign not found');
+        resourceOwnerId = campaign.creatorId;
+        break;
+
+      case FeatureName.campaignUpdates:
+        const campaignUpdate = await this.prisma.campaignUpdate.findUnique({
+          where: { id: resourceId as number },
+          select: { userId: true },
+        });
+        if (!campaignUpdate)
+          throw new NotFoundException('Campaign update not found');
+        resourceOwnerId = campaignUpdate.userId;
+        break;
+
+      case FeatureName.donations:
+        const donation = await this.prisma.donation.findUnique({
+          where: { id: resourceId as number },
+          select: { donorId: true },
+        });
+        if (!donation) throw new NotFoundException('Donation not found');
+        resourceOwnerId = donation.donorId;
+        break;
+
+      case FeatureName.paymentDetails:
+        // Since paymentDetails relate to donations owned by donors,
+        // fetch donation via paymentDetails to get donorId
+        const paymentDetail = await this.prisma.paymentDetails.findUnique({
+          where: { id: resourceId as number },
+          select: {
+            donation: {
+              select: { donorId: true },
+            },
+          },
+        });
+        if (!paymentDetail || !paymentDetail.donation)
+          throw new NotFoundException('Payment detail not found');
+        resourceOwnerId = paymentDetail.donation.donorId;
+        break;
+
+      case FeatureName.rewards:
+        // ownership via campaign creator (assuming reward owner is campaign owner)
+        const reward = await this.prisma.reward.findUnique({
+          where: { id: resourceId as number },
+          select: {
+            campaign: {
+              select: { creatorId: true },
+            },
+          },
+        });
+        if (!reward || !reward.campaign)
+          throw new NotFoundException('Reward not found');
+        resourceOwnerId = reward.campaign.creatorId;
+        break;
+
+      case FeatureName.campaignCategories:
+        // campaignCategories related to campaigns, ownership via campaign's creator
+        const campaignCategory = await this.prisma.campaignCategory.findUnique({
+          where: { id: resourceId as number },
+          select: {
+            campaign: {
+              select: { creatorId: true },
+            },
+          },
+        });
+        if (!campaignCategory || !campaignCategory.campaign)
+          throw new NotFoundException('Campaign category not found');
+        resourceOwnerId = campaignCategory.campaign.creatorId;
+        break;
 
       default:
         throw new ForbiddenException('Ownership not handled for this resource');

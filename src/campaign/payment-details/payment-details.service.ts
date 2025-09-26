@@ -14,6 +14,10 @@ export class PaymentDetailsService {
         paymentStatus: createPaymentDetailsDto.paymentStatus,
         transactionDate: createPaymentDetailsDto.transactionDate ?? new Date(),
         paymentReference: createPaymentDetailsDto.paymentReference,
+        razorpayOrderId: createPaymentDetailsDto.razorpayOrderId,
+        razorpayPaymentId: createPaymentDetailsDto.razorpayPaymentId,
+        razorpaySignature: createPaymentDetailsDto.razorpaySignature,
+        errorMessage: createPaymentDetailsDto.errorMessage,
       },
     });
   }
@@ -55,6 +59,16 @@ export class PaymentDetailsService {
           updatePaymentDetailsDto.transactionDate ?? existing.transactionDate,
         paymentReference:
           updatePaymentDetailsDto.paymentReference ?? existing.paymentReference,
+        razorpayOrderId:
+          updatePaymentDetailsDto.razorpayOrderId ?? existing.razorpayOrderId,
+        razorpayPaymentId:
+          updatePaymentDetailsDto.razorpayPaymentId ??
+          existing.razorpayPaymentId,
+        razorpaySignature:
+          updatePaymentDetailsDto.razorpaySignature ??
+          existing.razorpaySignature,
+        errorMessage:
+          updatePaymentDetailsDto.errorMessage ?? existing.errorMessage,
       },
     });
   }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProfileModule } from './profile/profile.module';
@@ -22,6 +22,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from './auth/guards/roles.guard';
 import { CompositeAuthGuard } from './auth/guards/composite.guard';
 import { AuthModule } from './auth/auth.module';
+import { FeatureFlagMiddleware } from './middleware/feature-flag.middleware';
 
 @Module({
   imports: [
@@ -71,4 +72,10 @@ import { AuthModule } from './auth/auth.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(FeatureFlagMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL }); // Apply to all routes
+  }
+}

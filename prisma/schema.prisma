@@ -33,6 +33,12 @@ model Users {
   postTagsTagged  PostTags[]       @relation("TaggedUser")
   posts           Posts[]
   role            Roles            @relation(fields: [roleId], references: [id])
+
+  // New relations for jobs and internships
+  postedJobs             Job[]
+  postedInternships      Internship[]
+  jobApplications        JobApplication[]
+  internshipApplications InternshipApplication[]
 }
 
 model Educations {
@@ -174,13 +180,17 @@ model Donation {
 }
 
 model PaymentDetails {
-  id               Int           @id @default(autoincrement())
-  donationId       Int           @unique
-  paymentProvider  String
-  paymentStatus    PaymentStatus
-  transactionDate  DateTime      @default(now())
-  paymentReference String?
-  donation         Donation      @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  id                Int           @id @default(autoincrement())
+  donationId        Int           @unique
+  paymentProvider   String
+  paymentStatus     PaymentStatus
+  transactionDate   DateTime      @default(now())
+  paymentReference  String?
+  razorpayOrderId   String? // recommended
+  razorpayPaymentId String? // recommended
+  razorpaySignature String? // recommended
+  errorMessage      String? // optional
+  donation          Donation      @relation(fields: [donationId], references: [id], onDelete: Cascade)
 }
 
 model Reward {
@@ -246,6 +256,15 @@ enum FeatureName {
   postComments
   postLikes
   postSaves
+  donations
+  rewards
+  campaignUpdates
+  paymentDetails
+  campaignCategories
+  jobs
+  jobApplications
+  internships
+  internshipApplications
 }
 
 enum CampaignStatus {
@@ -265,4 +284,78 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   PENDING
+}
+
+model Job {
+  id             Int              @id @default(autoincrement())
+  title          String
+  description    String
+  location       String?
+  salary         Decimal?         @db.Decimal(10, 2)
+  employmentType EmploymentType
+  postedById     String
+  postedBy       Users            @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  postedAt       DateTime         @default(now())
+  applications   JobApplication[]
+  tags           String[] // flexible skill/tags, can be normalized later
+  isActive       Boolean          @default(true)
+}
+
+model Internship {
+  id             Int                     @id @default(autoincrement())
+  title          String
+  description    String
+  location       String?
+  stipend        Decimal?                @db.Decimal(10, 2)
+  durationMonths Int?
+  postedById     String
+  postedBy       Users                   @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  postedAt       DateTime                @default(now())
+  applications   InternshipApplication[]
+  tags           String[] // flexible skill/tags, can be normalized later
+  isActive       Boolean                 @default(true)
+}
+
+model JobApplication {
+  id          Int               @id @default(autoincrement())
+  jobId       Int
+  applicantId String
+  status      ApplicationStatus @default(PENDING)
+  appliedAt   DateTime          @default(now())
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  applicant   Users             @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, applicantId])
+}
+
+model InternshipApplication {
+  id           Int               @id @default(autoincrement())
+  internshipId Int
+  applicantId  String
+  status       ApplicationStatus @default(PENDING)
+  appliedAt    DateTime          @default(now())
+  internship   Internship        @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  applicant    Users             @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@unique([internshipId, applicantId])
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  TEMPORARY
+  FREELANCE
+  REMOTE
+  OTHER
+}
+
+enum ApplicationStatus {
+  PENDING
+  SHORTLISTED
+  INTERVIEW
+  REJECTED
+  ACCEPTED
+  CANCELLED
+  WITHDRAWN
 }
