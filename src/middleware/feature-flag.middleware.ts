@@ -13,6 +13,7 @@ export class FeatureFlagMiddleware implements NestMiddleware {
     '/api/profile': 'profile',
     '/api/posts': 'posts',
     '/api/campaigns': 'fundraising',
+    '/api/jobs' : 'jobs_internships'
   };
 
   constructor() {

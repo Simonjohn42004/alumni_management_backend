@@ -23,6 +23,8 @@ import { PermissionsGuard } from './auth/guards/roles.guard';
 import { CompositeAuthGuard } from './auth/guards/composite.guard';
 import { AuthModule } from './auth/auth.module';
 import { FeatureFlagMiddleware } from './middleware/feature-flag.middleware';
+import { JobsModule } from './jobs_internships/jobs/jobs.module';
+import { ChatGateway } from './chats/chat.gateway';
 
 @Module({
   imports: [
@@ -60,12 +62,14 @@ import { FeatureFlagMiddleware } from './middleware/feature-flag.middleware';
       },
       inject: [ConfigService],
     }),
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     JwtAuthGuard,
     PermissionsGuard,
+    ChatGateway,
     {
       provide: APP_GUARD,
       useClass: CompositeAuthGuard,

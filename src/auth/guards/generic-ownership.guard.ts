@@ -148,6 +148,15 @@ export class GenericOwnershipGuard implements CanActivate {
         resourceOwnerId = campaignCategory.campaign.creatorId;
         break;
 
+      case FeatureName.jobs:
+        const job = await this.prisma.job.findUnique({
+          where: { id: resourceId as number },
+          select: { postedById: true },
+        });
+        if (!job) throw new NotFoundException('Job not found');
+        resourceOwnerId = job.postedById;
+        break;
+
       default:
         throw new ForbiddenException('Ownership not handled for this resource');
     }

@@ -50,6 +50,11 @@ export class ProfileService {
         posts: {
           include: { author: true },
         },
+        postComments: {
+          where: {
+            commenterId: id,
+          },
+        },
       },
     });
 
